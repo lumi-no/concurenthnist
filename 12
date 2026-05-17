@@ -1,0 +1,97 @@
+#include <iostream>
+#include <vector>
+#include <future>
+#include <thread>
+#include <chrono>
+
+using namespace std;
+using namespace chrono;
+
+int fetch_data(int x)
+{
+    this_thread::sleep_for(seconds(1));
+
+    return x;
+}
+
+void print(const vector<int>& data)
+{
+    for (int x : data)
+    {
+        cout << x << " ";
+    }
+
+    cout << endl;
+}
+
+int main()
+{
+    vector<int> data =
+    {
+        1,2,3,4,5,6,7,8,9,10
+    };
+
+
+    auto start1 = high_resolution_clock::now();
+
+    vector<int> sequential_result;
+
+    for (int x : data)
+    {
+        sequential_result.push_back(
+            fetch_data(x)
+        );
+    }
+
+    auto end1 = high_resolution_clock::now();
+
+    auto time1 =
+        duration_cast<seconds>(end1 - start1);
+
+
+    auto start2 = high_resolution_clock::now();
+
+    vector<future<int>> tasks;
+
+    for (int x : data)
+    {
+        tasks.push_back(
+            async(launch::async,
+                  fetch_data,
+                  x)
+        );
+    }
+
+    vector<int> parallel_result;
+
+    for (auto& task : tasks)
+    {
+        parallel_result.push_back(
+            task.get()
+        );
+    }
+
+    auto end2 = high_resolution_clock::now();
+
+    auto time2 =
+        duration_cast<seconds>(end2 - start2);
+
+
+    cout << "Sequential result: ";
+    print(sequential_result);
+
+    cout << "Sequential time: "
+         << time1.count()
+         << " sec" << endl;
+
+    cout << endl;
+
+    cout << "Parallel result: ";
+    print(parallel_result);
+
+    cout << "Parallel time: "
+         << time2.count()
+         << " sec" << endl;
+
+    return 0;
+}
