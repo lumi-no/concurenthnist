@@ -1,0 +1,74 @@
+#include <iostream>
+#include <vector>
+#include <future>
+
+using namespace std;
+
+bool is_even(int x)
+{
+    return x % 2 == 0;
+}
+
+long long process_transaction(int x)
+{
+    return x * 10LL;
+}
+
+long long process_part(int start, int end)
+{
+    long long sum = 0;
+
+    for (int i = start; i < end; i++)
+    {
+        if (is_even(i))
+        {
+            sum += process_transaction(i);
+        }
+    }
+
+    return sum;
+}
+
+int main()
+{
+    const int size = 1000000;
+    const int thread_count = 4;
+
+    vector<future<long long>> tasks;
+
+    int part_size = size / thread_count;
+
+    for (int i = 0; i < thread_count; i++)
+    {
+        int start = i * part_size;
+        int end;
+
+        if (i == thread_count - 1)
+        {
+            end = size;
+        }
+        else
+        {
+            end = start + part_size;
+        }
+
+        tasks.push_back(
+            async(launch::async,
+                  process_part,
+                  start,
+                  end)
+        );
+    }
+
+    long long total_sum = 0;
+
+    for (auto& task : tasks)
+    {
+        total_sum += task.get();
+    }
+
+    cout << "Total sum: "
+         << total_sum << endl;
+
+    return 0;
+}
