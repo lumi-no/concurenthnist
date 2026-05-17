@@ -1,0 +1,52 @@
+#include <iostream>
+#include <vector>
+#include <future>
+
+using namespace std;
+
+int square(int x)
+{
+    return x * x;
+}
+
+void print(const vector<int>& data, int index)
+{
+    if (index >= data.size())
+    {
+        return;
+    }
+
+    cout << data[index] << " ";
+    print(data, index + 1);
+}
+
+int main()
+{
+    vector<int> data = {1, 2, 3, 4, 5};
+
+    vector<future<int>> tasks;
+
+    tasks.push_back(async(launch::async, square, data[0]));
+    tasks.push_back(async(launch::async, square, data[1]));
+    tasks.push_back(async(launch::async, square, data[2]));
+    tasks.push_back(async(launch::async, square, data[3]));
+    tasks.push_back(async(launch::async, square, data[4]));
+
+    vector<int> result;
+
+    result.push_back(tasks[0].get());
+    result.push_back(tasks[1].get());
+    result.push_back(tasks[2].get());
+    result.push_back(tasks[3].get());
+    result.push_back(tasks[4].get());
+
+    cout << "Original: ";
+    print(data, 0);
+
+    cout << endl;
+
+    cout << "Squared: ";
+    print(result, 0);
+
+    return 0;
+}
