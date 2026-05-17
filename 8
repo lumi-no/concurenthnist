@@ -1,0 +1,67 @@
+#include <iostream>
+#include <vector>
+#include <future>
+
+using namespace std;
+
+int square(int x)
+{
+    return x * x;
+}
+
+bool greater_than_100(int x)
+{
+    return x > 100;
+}
+
+int sum_recursive(const vector<int>& data, int index)
+{
+    if (index >= data.size())
+    {
+        return 0;
+    }
+
+    return data[index] + sum_recursive(data, index + 1);
+}
+
+int main()
+{
+    vector<int> data;
+
+    for (int i = 0; i < 100; i++)
+    {
+        data.push_back(i);
+    }
+
+    vector<future<int>> tasks;
+
+    for (int x : data)
+    {
+        tasks.push_back(
+            async(launch::async, square, x)
+        );
+    }
+
+    vector<int> mapped;
+
+    for (auto& task : tasks)
+    {
+        mapped.push_back(task.get());
+    }
+
+    vector<int> filtered;
+
+    for (int x : mapped)
+    {
+        if (greater_than_100(x))
+        {
+            filtered.push_back(x);
+        }
+    }
+
+    int result = sum_recursive(filtered, 0);
+
+    cout << "Result: " << result << endl;
+
+    return 0;
+}
