@@ -1,0 +1,82 @@
+#include <iostream>
+#include <vector>
+#include <future>
+#include <chrono>
+
+using namespace std;
+using namespace chrono;
+
+int square(int x)
+{
+    return x * x;
+}
+
+vector<int> normal_map(const vector<int>& data)
+{
+    vector<int> result;
+
+    for (int i = 0; i < data.size(); i++)
+    {
+        result.push_back(square(data[i]));
+    }
+
+    return result;
+}
+
+vector<int> parallel_map(const vector<int>& data)
+{
+    vector<future<int>> tasks;
+    vector<int> result;
+
+    for (int i = 0; i < data.size(); i++)
+    {
+        tasks.push_back(
+            async(launch::async, square, data[i])
+        );
+    }
+
+    for (int i = 0; i < tasks.size(); i++)
+    {
+        result.push_back(tasks[i].get());
+    }
+
+    return result;
+}
+
+int main()
+{
+    vector<int> data;
+
+    for (int i = 0; i < 1000000; i++)
+    {
+        data.push_back(i);
+    }
+
+    auto start1 = high_resolution_clock::now();
+
+    vector<int> result1 = normal_map(data);
+
+    auto end1 = high_resolution_clock::now();
+
+    auto time1 =
+        duration_cast<milliseconds>(end1 - start1);
+
+    auto start2 = high_resolution_clock::now();
+
+    vector<int> result2 = parallel_map(data);
+
+    auto end2 = high_resolution_clock::now();
+
+    auto time2 =
+        duration_cast<milliseconds>(end2 - start2);
+
+    cout << "Normal map time: "
+         << time1.count()
+         << " ms" << endl;
+
+    cout << "Parallel map time: "
+         << time2.count()
+         << " ms" << endl;
+
+    return 0;
+}
