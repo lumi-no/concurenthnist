@@ -1,0 +1,75 @@
+ProcessPool може бути не швидшим, бо створення процесів дороге. CPU-bound задача сильно навантажує процесор.У C++ потоки можуть працювати паралельно на різних 
+ядрах процесора тому ThreadPool прискорює обчислення. У Python для CPU-bound часто швидший ProcessPool, бо там є GIL. У C++ GIL немає, тому ThreadPool 
+підходить краще. 
+
+#include <iostream>
+#include <vector>
+#include <future>
+#include <chrono>
+
+using namespace std;
+using namespace chrono;
+
+long long heavy_task(int x)
+{
+    long long total = 0;
+
+    for (int i = 0; i < 10000000; i++)
+    {
+        total += i * x;
+    }
+
+    return total;
+}
+
+int main()
+{
+    vector<int> data = {1, 2, 3, 4};
+
+    auto start1 = high_resolution_clock::now();
+
+    vector<long long> result1;
+
+    for (int x : data)
+    {
+        result1.push_back(heavy_task(x));
+    }
+
+    auto end1 = high_resolution_clock::now();
+
+    auto start2 = high_resolution_clock::now();
+
+    vector<future<long long>> tasks;
+
+    for (int x : data)
+    {
+        tasks.push_back(
+            async(launch::async, heavy_task, x)
+        );
+    }
+
+    vector<long long> result2;
+
+    for (auto& task : tasks)
+    {
+        result2.push_back(task.get());
+    }
+
+    auto end2 = high_resolution_clock::now();
+
+    auto time1 =
+        duration_cast<milliseconds>(end1 - start1);
+
+    auto time2 =
+        duration_cast<milliseconds>(end2 - start2);
+
+    cout << "Sequential time: "
+         << time1.count()
+         << " ms" << endl;
+
+    cout << "ThreadPool time: "
+         << time2.count()
+         << " ms" << endl;
+
+    return 0;
+}
