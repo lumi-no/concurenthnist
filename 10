@@ -1,0 +1,70 @@
+#include <iostream>
+#include <vector>
+#include <future>
+#include <string>
+
+using namespace std;
+
+double risky(int x)
+{
+    if (x == 0)
+    {
+        throw runtime_error("Division by zero");
+    }
+
+    return 10.0 / x;
+}
+
+vector<string> safe_parallel_map(vector<int> data)
+{
+    vector<future<string>> tasks;
+    vector<string> result;
+
+    for (int x : data)
+    {
+        tasks.push_back(
+            async(launch::async, [x]() -> string
+            {
+                try
+                {
+                    double value = risky(x);
+                    return "Result: " + to_string(value);
+                }
+                catch (exception&)
+                {
+                    return "Error: invalid value";
+                }
+            })
+        );
+    }
+
+    for (auto& task : tasks)
+    {
+        result.push_back(task.get());
+    }
+
+    return result;
+}
+
+void print(const vector<string>& data, int index)
+{
+    if (index >= data.size())
+    {
+        return;
+    }
+
+    cout << data[index] << endl;
+
+    print(data, index + 1);
+}
+
+int main()
+{
+    vector<int> data = {5, 2, 0, 10, 0};
+
+    vector<string> result = safe_parallel_map(data);
+
+    print(result, 0);
+
+    return 0;
+}
