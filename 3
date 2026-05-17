@@ -1,0 +1,57 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int increment(int x)
+{
+    return x + 1;
+}
+
+void process(const vector<int>& numbers,
+             vector<int>& result,
+             int index)
+{
+    if (index >= numbers.size())
+    {
+        return;
+    }
+
+    result.push_back(
+        increment(numbers[index])
+    );
+
+    process(numbers, result, index + 1);
+}
+
+void print(const vector<int>& numbers,
+           int index)
+{
+    if (index >= numbers.size())
+    {
+        return;
+    }
+
+    cout << numbers[index] << " ";
+
+    print(numbers, index + 1);
+}
+
+int main()
+{
+    vector<int> numbers = {1, 2, 3, 4, 5};
+
+    vector<int> result;
+
+    process(numbers, result, 0);
+
+    cout << "Original: ";
+    print(numbers, 0);
+
+    cout << endl;
+
+    cout << "Incremented: ";
+    print(result, 0);
+
+    return 0;
+}
